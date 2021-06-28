@@ -1,5 +1,5 @@
-#include <eosiolib/eosio.hpp>
-#include <eosiolib/types.h>
+#include <eosio/eosio.hpp>
+// #include <eosio/types.h>
 
 using std::vector;
 using byte = uint8_t;
@@ -100,9 +100,9 @@ int trieValue(bytes encodedPath,
         if (pathPtr > path.size()) {return false;}
 
         bytes *currentNodePtr = &parent_nodes_rlps[i];
-        capi_checksum256 hash = keccak256((*currentNodePtr).data(), (*currentNodePtr).size());
+        checksum256 hash = keccak256((*currentNodePtr).data(), (*currentNodePtr).size());
 
-        if (memcmp(nodeKey, hash.hash, 32) != 0) {
+        if (memcmp(nodeKey, (uint8_t *)hash.data(), 32) != 0) {
             printf("wrong 1!\n");
           return false;
         }
@@ -115,10 +115,10 @@ int trieValue(bytes encodedPath,
             printf("branch node\n");
             if (pathPtr == path.size()) {
 
-                capi_checksum256 hash1 = keccak256(currentNodeList[16].content, currentNodeList[16].len);
-                capi_checksum256 hash2 = keccak256(value.data(), value.size());
+                checksum256 hash1 = keccak256(currentNodeList[16].content, currentNodeList[16].len);
+                checksum256 hash2 = keccak256(value.data(), value.size());
 
-                if (memcmp(hash1.hash, hash2.hash, 32) == 0) {
+                if (memcmp((uint8_t *)hash1.data(), (uint8_t *)hash2.data(), 32) == 0) {
                     printf("right 2!\n");
                     return true;
                 } else {
@@ -143,10 +143,10 @@ int trieValue(bytes encodedPath,
             if (pathPtr == path.size()) { //leaf node
                 printf("leaf node\n");
 
-                capi_checksum256 hash1 = keccak256(currentNodeList[1].content, currentNodeList[1].len);
-                capi_checksum256 hash2 = keccak256(value.data(), value.size());
+                checksum256 hash1 = keccak256(currentNodeList[1].content, currentNodeList[1].len);
+                checksum256 hash2 = keccak256(value.data(), value.size());
 
-                if (memcmp(hash1.hash, hash2.hash, 32) == 0) {
+                if (memcmp((uint8_t *)hash1.data(), (uint8_t *)hash2.data(), 32) == 0) {
                     printf("right 3!\n");
                     return true;
                 } else {

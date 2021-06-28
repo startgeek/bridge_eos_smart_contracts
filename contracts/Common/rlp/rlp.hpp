@@ -1,4 +1,4 @@
-#include <eosiolib/print.hpp>
+#include <eosio/print.hpp>
 using eosio::print;
 
 #define PARENT_HASH_FIELD       0
@@ -101,7 +101,7 @@ static void decode_list(uint8_t* input, rlp_item* outputs, uint *output_list_len
         if(first_byte <= 0x7f) elm_len = decode_single_byte(current_input,outputs + outputs_ind);
         else if(first_byte <= 0xbf) elm_len = decode_string(current_input,outputs + outputs_ind);
         else {
-            eosio_assert(false, "error: recursive list");
+            check(false, "error: recursive list");
         }
 
         current_input += elm_len;
@@ -118,23 +118,23 @@ static uint remove_last_field_from_rlp(uint8_t* rlp, uint field_len) {
     uint rlp_final_len;
     uint rlp_len_num_bytes;
 
-    if(rlp[0] <= 0xf7) eosio_assert(0, "error: rlp is too short\n");
+    if(rlp[0] <= 0xf7) check(0, "error: rlp is too short\n");
 
     rlp_len_num_bytes = rlp[0] - 0xf7;
     rlp_org_len = decode_number(rlp + 1, rlp_len_num_bytes);
 
-    if(field_len >= 55) eosio_assert(0,"error: unexpected field_len\n");
-    if(rlp_org_len <= 55 - field_len) eosio_assert(0,"error: rlp is too short\n");
+    if(field_len >= 55) check(0,"error: unexpected field_len\n");
+    if(rlp_org_len <= 55 - field_len) check(0,"error: rlp is too short\n");
 
     if(field_len == 0) field_len_field_len = 0; // would happen once every 2^64 blocks...
     else if(field_len <= 55) field_len_field_len = 1;
-    else eosio_assert(0,"error: unexpected field_len\n");
+    else check(0,"error: unexpected field_len\n");
 
     rlp_final_len = rlp_org_len - (field_len + field_len_field_len);
 
     // make sure number of bytes wasn't changed
-    if(rlp_final_len <= 256) eosio_assert(0,"error: unexpcted rlp len\n");
-    if(rlp_org_len >= 256 * 256) eosio_assert(0,"error: unexpecpted rlp len\n");
+    if(rlp_final_len <= 256) check(0,"error: unexpcted rlp len\n");
+    if(rlp_org_len >= 256 * 256) check(0,"error: unexpecpted rlp len\n");
 
     // new length is exactly 2 bytes
     rlp[1] = rlp_final_len >> 8;

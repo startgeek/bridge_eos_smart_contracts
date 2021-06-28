@@ -1,5 +1,5 @@
-#include <eosiolib/eosio.hpp>
-#include <eosiolib/types.h>
+#include <eosio/eosio.hpp>
+// #include <eosio/types.h>
 
 using std::vector;
 
@@ -24,8 +24,8 @@ void merkle_element_hash(uint8_t *ret, uint8_t *data){
   uint8_t conventional[MERKLE_CONVENTIONAL_LEN];
   merkle_conventional_encoding(conventional, data);
 
-  capi_checksum256 tmp = sha256(conventional, 128);
-  memcpy(ret, tmp.hash + 16, 16); // last 16 bytes
+  checksum256 tmp = sha256(conventional, 128);
+  memcpy(ret, (uint8_t *)tmp.data() + 16, 16); // last 16 bytes
   return;
 }
 
@@ -35,8 +35,8 @@ void merkle_hash_siblings(uint8_t *ret, uint8_t *a, uint8_t *b){
     memcpy(padded_pair + 48, a, 16);
     memcpy(padded_pair + 16, b, 16);
 
-    capi_checksum256 tmp = sha256(padded_pair, 64);
-    memcpy(ret, tmp.hash + 16, 16); // last 16 bytes
+    checksum256 tmp = sha256(padded_pair, 64);
+    memcpy(ret, (uint8_t *)tmp.data() + 16, 16); // last 16 bytes
     return;
 }
 

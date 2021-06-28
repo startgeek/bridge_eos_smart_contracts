@@ -81,9 +81,9 @@ void parse_reciept(name *recipient,
     rlp_elem *eos_recipient_name = get_n_elem(topics, 2);   // 3rd topic
     rlp_elem *lock_id = get_n_elem(topics, 4);              // 4th topic
 
-    eosio_assert(memcmp(&lock_contract_address[0], address->content, 20) == 0,
+    check(memcmp(&lock_contract_address[0], address->content, 20) == 0,
                  "adress is not for knc contract address");
-    eosio_assert(memcmp(&lock_signature[0], function_signature->content, 32) == 0,
+    check(memcmp(&lock_signature[0], function_signature->content, 32) == 0,
                  "function signature is not for knc transfer");
 
     // further parse amount
@@ -93,7 +93,7 @@ void parse_reciept(name *recipient,
     }
     uint128_t amount_128_scaled =
         amount_128 / (uint128_t)(pow(10, 18 - token_symbol.precision()));
-    eosio_assert(amount_128_scaled < asset::max_amount, "amount too big");
+    check(amount_128_scaled < asset::max_amount, "amount too big");
     *to_issue = asset((uint64_t)amount_128_scaled, token_symbol);
 
     // further parse recipient address
@@ -102,7 +102,7 @@ void parse_reciept(name *recipient,
         eos_address_64 = (eos_address_64 << 8) + (uint8_t)eos_recipient_name->content[24 + i];
     }
     *recipient = name(eos_address_64);
-    eosio_assert(is_account(*recipient), "recipient account does not exist");
+    check(is_account(*recipient), "recipient account does not exist");
     print("recipient:", *recipient);
     print("\n");
 
@@ -124,7 +124,7 @@ ACTION Issue::config(name token_contract, symbol token_symbol, name bridge_contr
 
 // TODO: duplicated from longest chain - make shared in common
 uint64_t sha_and_crop(const uint8_t *input, uint size) {
-    capi_checksum256 sha_csum = sha256(input, size);
+    checksum256 sha_csum = sha256(input, size);
 
     uint64_t res = 0;
     for(int i = 0; i < 8; i++){
@@ -143,23 +143,23 @@ ACTION Issue::issue(const bytes& header_rlp,
     onlongest_type onlongest_table(s.bridge_contract, s.bridge_contract.value);
     uint64_t header_sha256 = sha_and_crop(header_rlp.data(), header_rlp.size());
     auto itr = onlongest_table.find(header_sha256);
-    eosio_assert(itr != onlongest_table.end(),
+    check(itr != onlongest_table.end(),
                  "header not verified on longest path in bridge contract");
 
     // verify min work amount was done
     //// TODO - move to input.
     uint128_t min_accumulated_work_1k_res = 100;
     ///////////////
-    eosio_assert(itr->accumulated_work >= min_accumulated_work_1k_res * 1000,
+    check(itr->accumulated_work >= min_accumulated_work_1k_res * 1000,
                  "min accumulated work not reached");
 
     // calculate sealed header hash
-    capi_checksum256 header_hash = keccak256(header_rlp.data(), header_rlp.size());
+    checksum256 header_hash = keccak256(header_rlp.data(), header_rlp.size());
 
     // make sure the reciept exists in bridge contract
     uint64_t receipt_header_hash = get_reciept_header_hash(receipt_rlp, header_hash);
     receipts_type receipt_table(s.bridge_contract, s.bridge_contract.value);
-    eosio_assert(receipt_table.find(receipt_header_hash) != receipt_table.end(),
+    check(receipt_table.find(receipt_header_hash) != receipt_table.end(),
                  "reciept not verified in bridge contract");
 
     // get actual receipt values
@@ -171,7 +171,7 @@ ACTION Issue::issue(const bytes& header_rlp,
     // store lock id
     lockid_type lockid_inst(_self, _self.value);
     bool exists = (lockid_inst.find(lock_id) != lockid_inst.end());
-    eosio_assert(!exists, "current lock receipt was already processed");
+    check(!exists, "current lock receipt was already processed");
     lockid_inst.emplace(_self, [&](auto& s) {
         s.lock_id = lock_id;
     });

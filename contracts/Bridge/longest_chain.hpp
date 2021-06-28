@@ -5,11 +5,11 @@
 #define INVALID (1LL << 62) - 1
 
 uint64_t sha_and_crop(const uint8_t *input, uint size) {
-    capi_checksum256 sha_csum = sha256(input, size);
+    checksum256 sha_csum = sha256(input, size);
 
     uint64_t res = 0;
     for(int i = 0; i < 8; i++){
-        res |= ((uint64_t)(sha_csum.hash[i]) << (i * 8));
+        res |= ((uint64_t)((uint8_t *)sha_csum.data()[i]) << (i * 8));
     }
     return res;
 }
@@ -64,7 +64,7 @@ ACTION Bridge::setgenesis(uint64_t genesis_block_num,
     print("setgenesis with genesis block num ", genesis_block_num);
 
     require_auth(_self); // only authorized entity can set genesis
-    eosio_assert(genesis_block_num % ANCHOR_SMALL_INTERVAL == 1, "bad genesis block resolution");
+    check(genesis_block_num % ANCHOR_SMALL_INTERVAL == 1, "bad genesis block resolution");
 
     state_type state_inst(_self, _self.value);
     uint64_t current_pointer = 0; // can not allocate if state is not initialized
@@ -79,7 +79,7 @@ ACTION Bridge::setgenesis(uint64_t genesis_block_num,
 
     // init anchors table
     anchors_type anchors_inst(_self, _self.value);
-    eosio_assert(anchors_inst.find(genesis_block_num) == anchors_inst.end(), "anchor exists");
+    check(anchors_inst.find(genesis_block_num) == anchors_inst.end(), "anchor exists");
 
     anchors_inst.emplace(_self, [&](auto& s) {
         s.current = current_pointer;
@@ -101,21 +101,21 @@ ACTION Bridge::initscratch(name msg_sender,
     require_auth(msg_sender);
 
     // make sure anchor_block_num is in small interval resolution
-    eosio_assert(anchor_block_num % ANCHOR_SMALL_INTERVAL == 0, "bad anchor resolution");
+    check(anchor_block_num % ANCHOR_SMALL_INTERVAL == 0, "bad anchor resolution");
 
     // get previous anchor
     anchors_type anchors_inst(_self, _self.value);
     auto itr = anchors_inst.find(previous_anchor_pointer);
-    eosio_assert(itr != anchors_inst.end(), "wrong previous anchor pointer");
+    check(itr != anchors_inst.end(), "wrong previous anchor pointer");
 
     // assert previous anchor pointer points to the correct block num
     uint64_t previous_anchor_block_num = anchor_block_num - ANCHOR_SMALL_INTERVAL;
-    eosio_assert(itr->block_num == previous_anchor_block_num, "wrong previous anchor block num");
+    check(itr->block_num == previous_anchor_block_num, "wrong previous anchor block num");
 
     // make sure scratchpad is not allocated and allocate one
     uint64_t tuple_key = get_tuple_key(msg_sender, anchor_block_num);
     scratchdata_type scratch_inst(_self, _self.value);
-    eosio_assert(scratch_inst.find(tuple_key) == scratch_inst.end(), "scratchpad exists");
+    check(scratch_inst.find(tuple_key) == scratch_inst.end(), "scratchpad exists");
 
     scratch_inst.emplace(_self, [&](auto& s) {
         s.anchor_sender_hash = tuple_key;
@@ -139,10 +139,10 @@ void Bridge::store_header(name msg_sender,
     uint64_t tuple_key = get_tuple_key(msg_sender, next_anchor);
     scratchdata_type scratch_inst(_self, _self.value);
     auto itr = scratch_inst.find(tuple_key);
-    eosio_assert(itr != scratch_inst.end(), "scratchpad not initialized");
+    check(itr != scratch_inst.end(), "scratchpad not initialized");
 
     // check new block is based on previous one
-    eosio_assert(previous_hash == itr->last_block_hash, "wrong previous hash");
+    check(previous_hash == itr->last_block_hash, "wrong previous hash");
 
     // add difficulty
     uint128_t new_total_difficulty = itr->total_difficulty + difficulty;
@@ -165,22 +165,22 @@ ACTION Bridge::finalize(name msg_sender, uint64_t anchor_block_num) {
     // authenticate the sender
     require_auth(msg_sender);
 
-    eosio_assert(anchor_block_num % ANCHOR_SMALL_INTERVAL == 0, "wrong anchor resolution");
+    check(anchor_block_num % ANCHOR_SMALL_INTERVAL == 0, "wrong anchor resolution");
 
     // load scratchpad
     scratchdata_type scratch_inst(_self, _self.value);
     uint64_t tuple_key = get_tuple_key(msg_sender, anchor_block_num);
     auto scratch_itr = scratch_inst.find(tuple_key);
-    eosio_assert(scratch_itr != scratch_inst.end(), "scratchpad not initialized");
+    check(scratch_itr != scratch_inst.end(), "scratchpad not initialized");
 
     // make sure there is no existing anchor with same header hash
     anchors_type anchors_inst(_self, _self.value);
     auto same_hash_entries = anchors_inst.get_index<"headerhash"_n>();
-    eosio_assert(same_hash_entries.find(scratch_itr->last_block_hash) == same_hash_entries.end(),
+    check(same_hash_entries.find(scratch_itr->last_block_hash) == same_hash_entries.end(),
                  "found same header hash on an anchor");
 
     // calculate small_interval list hash
-    eosio_assert(scratch_itr->small_interval_list.size() == ANCHOR_SMALL_INTERVAL, "wrong list size");
+    check(scratch_itr->small_interval_list.size() == ANCHOR_SMALL_INTERVAL, "wrong list size");
     uint64_t list_hash = sha256_of_list(scratch_itr->small_interval_list);
 
     // TODO - remove tmp code:
@@ -244,13 +244,13 @@ ACTION Bridge::erasescratch(name msg_sender, uint64_t anchor_block_num) {
     // authenticate the sender
     require_auth(msg_sender);
 
-    eosio_assert(anchor_block_num % ANCHOR_SMALL_INTERVAL == 0, "wrong anchor resolution");
+    check(anchor_block_num % ANCHOR_SMALL_INTERVAL == 0, "wrong anchor resolution");
 
     // load scratchpad
     scratchdata_type scratch_inst(_self, _self.value);
     uint64_t tuple_key = get_tuple_key(msg_sender, anchor_block_num);
     auto scratch_itr = scratch_inst.find(tuple_key);
-    eosio_assert(scratch_itr != scratch_inst.end(), "scratchpad not initialized");
+    check(scratch_itr != scratch_inst.end(), "scratchpad not initialized");
 
     scratch_inst.erase(scratch_itr);
 }
@@ -273,7 +273,7 @@ ACTION Bridge::veriflongest(const bytes& header_rlp_sha256,
 
     // verify header_rlp_sha256 in list
     uint index = (block_num - 1) % ANCHOR_SMALL_INTERVAL;
-    eosio_assert(header_sha256 == proof[index], "header sha256 not found");
+    check(header_sha256 == proof[index], "header sha256 not found");
 
     // start process of finding adjacent node that is a multiplication of small interval
     state_type state_inst(_self, _self.value);
@@ -303,10 +303,10 @@ ACTION Bridge::veriflongest(const bytes& header_rlp_sha256,
 
     // verify stored sha256(list) is equal to given sha256 list proof
     uint64_t list_proof_sha256 = sha256_of_list(proof);
-    eosio_assert(list_proof_sha256 == itr->list_hash, "given list hash diff with stored list hash");
+    check(list_proof_sha256 == itr->list_hash, "given list hash diff with stored list hash");
 
     // TODO - fix!
-    eosio_assert(1 || anchors_head_work > itr->total_difficulty, "accumulated work is not positive");
+    check(1 || anchors_head_work > itr->total_difficulty, "accumulated work is not positive");
     uint128_t total_work = anchors_head_work - itr->total_difficulty;
 
     // store evidence that the block is on the longest chain

@@ -1,10 +1,10 @@
-#include <eosiolib/eosio.hpp>
-#include <eosiolib/print.hpp>
-#include <eosiolib/types.h>
-#include <eosiolib/crypto.h>
-#include <eosiolib/asset.hpp>
-#include <eosiolib/symbol.hpp>
-#include <eosiolib/singleton.hpp>
+#include <eosio/eosio.hpp>
+// #include <eosio/print.hpp>
+// #include <eosio/types.h>
+// #include <eosio/crypto.h>
+#include <eosio/asset.hpp>
+// #include <eosio/symbol.hpp>
+// #include <eosio/singleton.hpp>
 
 #include "sha3/sha3.hpp"
 
@@ -47,26 +47,27 @@ void print_uint8_array(uint8_t *arr, uint size){
 }
 /* end of helper functions */
 
-capi_checksum256 sha256(const uint8_t* input, uint input_size) {
-    capi_checksum256 ret;
-    eosio:sha256((char *)input, input_size, &ret);
-    return ret;
+checksum256 sha256(const uint8_t* input, uint input_size) {
+    // checksum256 ret;
+    // eosio:sha256((char *)input, input_size, &ret);
+    return sha256(input, input_size);
+    // return ret;
 }
 
 uint64_t get_reciept_header_hash(const bytes &receipt_rlp,
-                                 capi_checksum256 &header_hash) {
+                                 checksum256 &header_hash) {
 
     // get combined sha256 of (sha256(receipt rlp),header hash)
-    capi_checksum256 rlp_receipt_hash = sha256(receipt_rlp.data(), receipt_rlp.size());
+    checksum256 rlp_receipt_hash = sha256(receipt_rlp.data(), receipt_rlp.size());
 
     bytes combined_hash_input(64);
-    std::copy(header_hash.hash, header_hash.hash + 32, combined_hash_input.begin());
-    std::copy(rlp_receipt_hash.hash, rlp_receipt_hash.hash + 32, combined_hash_input.begin() + 32);
+    std::copy((uint8_t *)header_hash.data(), (uint8_t *)header_hash.data() + 32, combined_hash_input.begin());
+    std::copy((uint8_t *)rlp_receipt_hash.data(), (uint8_t *)rlp_receipt_hash.data() + 32, combined_hash_input.begin() + 32);
 
-    capi_checksum256 combined_hash_output = sha256(combined_hash_input.data(), combined_hash_input.size());
+    checksum256 combined_hash_output = sha256((uint8_t *)combined_hash_input.data(), combined_hash_input.size());
 
     // crop only 64 bits
-    return *(uint64_t *)combined_hash_output.hash;
+    return *(uint64_t *)combined_hash_output.data();
 }
 
 uint64_t crop(const uint8_t *full_hash) {

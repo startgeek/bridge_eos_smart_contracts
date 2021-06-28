@@ -36,8 +36,8 @@ struct header_info_struct {
     uint8_t *difficulty;
     uint difficulty_len;
     uint8_t *receipt_root;
-    capi_checksum256 unsealed_header_hash;
-    capi_checksum256 header_hash;
+    checksum256 unsealed_header_hash;
+    checksum256 header_hash;
 };
 
 static uint64_t* dag_sizes_array[] = {dag_sizes_0, dag_sizes_1, dag_sizes_2,
@@ -52,7 +52,7 @@ uint32_t fnv_hash(uint32_t const x, uint32_t const y)
 
 uint64_t ethash_get_datasize(uint64_t const block_num)
 {
-    eosio_assert(block_num / ETHASH_EPOCH_LENGTH < EPOCH_ELEMENTS, "block number too big");
+    check(block_num / ETHASH_EPOCH_LENGTH < EPOCH_ELEMENTS, "block number too big");
     uint index = block_num / ETHASH_EPOCH_LENGTH;
     uint array_num = index / EPOCH_SINGLE_ARRAY_SIZE;
     uint index_in_array = index % EPOCH_SINGLE_ARRAY_SIZE;
@@ -65,7 +65,7 @@ void verify_header(struct header_info_struct* header_info,
                    const bytes& proofs,
                    uint proof_length) {
 
-    uint8_t *header_hash = header_info->unsealed_header_hash.hash;
+    uint8_t *header_hash = (uint8_t *)header_info->unsealed_header_hash.data();
     uint64_t const nonce = header_info->nonce;
     uint64_t block_num = header_info->block_num;
     uint8_t *expected_root = header_info->expected_root;
@@ -73,7 +73,7 @@ void verify_header(struct header_info_struct* header_info,
     uint difficulty_len = header_info->difficulty_len;
 
     uint64_t full_size = ethash_get_datasize(block_num);
-    eosio_assert(full_size % MIX_WORDS == 0, "wrong full size");
+    check(full_size % MIX_WORDS == 0, "wrong full size");
 
     // pack hash and nonce together into first 40 bytes of s_mix
     node s_mix[MIX_NODES + 1];
@@ -108,7 +108,7 @@ void verify_header(struct header_info_struct* header_info,
         uint8_t *proofs_start = (uint8_t *)(&proofs[i * proof_length * MERKLE_ELEMENT_LEN]);
 
         merkle_apply_path(index, res, current_item, proofs_start, proof_length);
-        eosio_assert(0 == memcmp(res, expected_root, MERKLE_ELEMENT_LEN),
+        check(0 == memcmp(res, expected_root, MERKLE_ELEMENT_LEN),
                      "dag elements merkle verification failure");
 
         for (unsigned n = 0; n != MIX_NODES; ++n) {
@@ -130,16 +130,16 @@ void verify_header(struct header_info_struct* header_info,
     }
 
     // final Keccak hash
-    capi_checksum256 ethash= keccak256(s_mix->bytes, 64 + 32);
+    checksum256 ethash= keccak256(s_mix->bytes, 64 + 32);
 
     print("ethash: ");
-    print_uint8_array(ethash.hash, 32);
+    print_uint8_array((uint8_t *)ethash.data(), 32);
 
     print("mixed_hash: ");
     print_uint8_array(mix->bytes, 32);
 
     //check ethash result meets the required difficulty
-    eosio_assert(check_pow(difficulty, difficulty_len, ethash.hash), "pow difficulty failure");
+    check(check_pow(difficulty, difficulty_len, (uint8_t *)ethash.data()), "pow difficulty failure");
 
     return;
 }
@@ -157,11 +157,11 @@ void hash_header_rlp(struct header_info_struct* header_info,
     // calculate unsealed header hash (w/o nonce and mixed fields).
     int trim_len = remove_last_field_from_rlp((uint8_t *)header_rlp.data(),
                                               items[NONCE_FIELD].len);
-    eosio_assert(trim_len == (header_rlp.size() - 9), "wrong 1st trim length");
+    check(trim_len == (header_rlp.size() - 9), "wrong 1st trim length");
 
     trim_len = remove_last_field_from_rlp((uint8_t *)header_rlp.data(),
                                           items[MIX_HASH_FIELD].len);
-    eosio_assert(trim_len == (header_rlp.size() - 42), "wrong 2nd trim length");
+    check(trim_len == (header_rlp.size() - 42), "wrong 2nd trim length");
 
     header_info->unsealed_header_hash = keccak256(header_rlp.data(), trim_len);
 
@@ -195,7 +195,7 @@ ACTION Bridge::storeroots(const vector<uint64_t>& epoch_nums,
 
     require_auth(_self);
 
-    eosio_assert(epoch_nums.size() * MERKLE_ELEMENT_LEN == dag_roots.size(),
+    check(epoch_nums.size() * MERKLE_ELEMENT_LEN == dag_roots.size(),
                  "epochs and roots vectors mismatch");
     roots_type roots_inst(_self, _self.value);
 
@@ -241,7 +241,7 @@ ACTION Bridge::relay(name msg_sender,
     store_header(msg_sender,
                  header_info.block_num,
                  decode_number128(header_info.difficulty, header_info.difficulty_len),
-                 crop(header_info.header_hash.hash),
+                 crop((uint8_t *)header_info.header_hash.data()),
                  crop(header_info.previous_hash),
                  header_rlp);
 
@@ -256,7 +256,7 @@ ACTION Bridge::checkreceipt(bytes& header_rlp,
     struct header_info_struct header_info;
     parse_header(&header_info, header_rlp);
 
-    eosio_assert(trieValue(encoded_path,
+    check(trieValue(encoded_path,
                            receipt_rlp,
                            all_parent_nodes_rlps,
                            all_parnet_rlp_sizes,

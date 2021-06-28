@@ -1,12 +1,12 @@
 #pragma once
 
-#include <eosiolib/eosio.hpp>
-#include <eosiolib/print.hpp>
-#include <eosiolib/types.h>
-#include <eosiolib/crypto.h>
-#include <eosiolib/asset.hpp>
-#include <eosiolib/symbol.hpp>
-#include <eosiolib/singleton.hpp>
+#include <eosio/eosio.hpp>
+#include <eosio/print.hpp>
+// #include <eosio/types.h>
+// #include <eosio/crypto.h>
+#include <eosio/asset.hpp>
+// #include <eosio/symbol.hpp>
+#include <eosio/singleton.hpp>
 
 #include <string>
 #include <vector>

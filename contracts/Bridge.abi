@@ -1,0 +1,382 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.2",
+    "types": [
+        {
+            "new_type_name": "uint",
+            "type": "uint32"
+        }
+    ],
+    "structs": [
+        {
+            "name": "anchors",
+            "base": "",
+            "fields": [
+                {
+                    "name": "current",
+                    "type": "uint64"
+                },
+                {
+                    "name": "previous_small",
+                    "type": "uint64"
+                },
+                {
+                    "name": "previous_large",
+                    "type": "uint64"
+                },
+                {
+                    "name": "list_hash",
+                    "type": "uint64"
+                },
+                {
+                    "name": "header_hash",
+                    "type": "uint64"
+                },
+                {
+                    "name": "total_difficulty",
+                    "type": "uint128"
+                },
+                {
+                    "name": "block_num",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "checkreceipt",
+            "base": "",
+            "fields": [
+                {
+                    "name": "header_rlp",
+                    "type": "bytes"
+                },
+                {
+                    "name": "encoded_path",
+                    "type": "bytes"
+                },
+                {
+                    "name": "receipt_rlp",
+                    "type": "bytes"
+                },
+                {
+                    "name": "all_parent_nodes_rlps",
+                    "type": "bytes"
+                },
+                {
+                    "name": "all_parnet_rlp_sizes",
+                    "type": "uint[]"
+                }
+            ]
+        },
+        {
+            "name": "erasescratch",
+            "base": "",
+            "fields": [
+                {
+                    "name": "msg_sender",
+                    "type": "name"
+                },
+                {
+                    "name": "anchor_block_num",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "finalize",
+            "base": "",
+            "fields": [
+                {
+                    "name": "msg_sender",
+                    "type": "name"
+                },
+                {
+                    "name": "anchor_block_num",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "initscratch",
+            "base": "",
+            "fields": [
+                {
+                    "name": "msg_sender",
+                    "type": "name"
+                },
+                {
+                    "name": "anchor_block_num",
+                    "type": "uint64"
+                },
+                {
+                    "name": "previous_anchor_pointer",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "onlongest",
+            "base": "",
+            "fields": [
+                {
+                    "name": "header_sha256",
+                    "type": "uint64"
+                },
+                {
+                    "name": "accumulated_work",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "receipts",
+            "base": "",
+            "fields": [
+                {
+                    "name": "receipt_header_hash",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "relay",
+            "base": "",
+            "fields": [
+                {
+                    "name": "msg_sender",
+                    "type": "name"
+                },
+                {
+                    "name": "header_rlp",
+                    "type": "bytes"
+                },
+                {
+                    "name": "dags",
+                    "type": "bytes"
+                },
+                {
+                    "name": "proofs",
+                    "type": "bytes"
+                },
+                {
+                    "name": "proof_length",
+                    "type": "uint"
+                }
+            ]
+        },
+        {
+            "name": "roots",
+            "base": "",
+            "fields": [
+                {
+                    "name": "epoch_num",
+                    "type": "uint64"
+                },
+                {
+                    "name": "root",
+                    "type": "bytes"
+                }
+            ]
+        },
+        {
+            "name": "scratchdata",
+            "base": "",
+            "fields": [
+                {
+                    "name": "anchor_sender_hash",
+                    "type": "uint64"
+                },
+                {
+                    "name": "last_block_hash",
+                    "type": "uint64"
+                },
+                {
+                    "name": "total_difficulty",
+                    "type": "uint128"
+                },
+                {
+                    "name": "small_interval_list",
+                    "type": "uint64[]"
+                },
+                {
+                    "name": "previous_anchor_pointer",
+                    "type": "uint64"
+                },
+                {
+                    "name": "last_relayed_block",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "setgenesis",
+            "base": "",
+            "fields": [
+                {
+                    "name": "genesis_block_num",
+                    "type": "uint64"
+                },
+                {
+                    "name": "previous_header_hash",
+                    "type": "bytes"
+                },
+                {
+                    "name": "initial_difficulty",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "state",
+            "base": "",
+            "fields": [
+                {
+                    "name": "last_issued_key",
+                    "type": "uint64"
+                },
+                {
+                    "name": "anchors_head_difficulty",
+                    "type": "uint128"
+                },
+                {
+                    "name": "anchors_head_block_num",
+                    "type": "uint64"
+                },
+                {
+                    "name": "anchors_head_pointer",
+                    "type": "uint64"
+                },
+                {
+                    "name": "genesis_block_num",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "storeroots",
+            "base": "",
+            "fields": [
+                {
+                    "name": "epoch_nums",
+                    "type": "uint64[]"
+                },
+                {
+                    "name": "dag_roots",
+                    "type": "bytes"
+                }
+            ]
+        },
+        {
+            "name": "veriflongest",
+            "base": "",
+            "fields": [
+                {
+                    "name": "header_rlp_sha256",
+                    "type": "bytes"
+                },
+                {
+                    "name": "block_num",
+                    "type": "uint64"
+                },
+                {
+                    "name": "interval_list_proof",
+                    "type": "bytes"
+                },
+                {
+                    "name": "min_accumulated_work_1k_res",
+                    "type": "uint128"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "checkreceipt",
+            "type": "checkreceipt",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "erasescratch",
+            "type": "erasescratch",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "finalize",
+            "type": "finalize",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "initscratch",
+            "type": "initscratch",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "relay",
+            "type": "relay",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setgenesis",
+            "type": "setgenesis",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "storeroots",
+            "type": "storeroots",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "veriflongest",
+            "type": "veriflongest",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "anchors",
+            "type": "anchors",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "onlongest",
+            "type": "onlongest",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "receipts",
+            "type": "receipts",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "roots",
+            "type": "roots",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "scratchdata",
+            "type": "scratchdata",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "state",
+            "type": "state",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "kv_tables": {},
+    "ricardian_clauses": [],
+    "variants": [],
+    "action_results": []
+}
